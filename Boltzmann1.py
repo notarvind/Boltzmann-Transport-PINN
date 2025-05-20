@@ -15,14 +15,12 @@ class PINN(nn.Module):
 
   def forward(self, x):
     return self.net(x)
-
 #sets up network
 
 num_points = 10000
 r = torch.rand(num_points, 1) * 9 + 1 #let r be b/w 1 and 10
 mu = torch.rand(num_points, 1) * 2 - 1 #mu = cos(theta), so b/w -1 and 1
 inputs = torch.cat([r, mu], dim=1).requires_grad_() #combines both into an array of the form [r, mu], tells PyTorch to track gradients wrt inputs
-
 #collocation points to regulate the network at random points as a check
 
 def j(r): #emissivity
@@ -30,7 +28,6 @@ def j(r): #emissivity
 
 def k(r): #opacity
   return 0.3 + (0.2*torch.exp(-r/2))
-
 #realistic eqns for change in emissivity and opacity with radius (exponential decay), but normalised to domain
 
 num_bc = 1000
@@ -43,7 +40,6 @@ f_pred_bc = model(x_bc) #runs BC array thru model
 f_target_bc = torch.zeros_like(f_pred_bc) #identical tensor to f_pred_bc, filled with 0s (which is the target/correct value at the BCs)
 loss_MSE = nn.MSELoss() #sets up MSE loss function
 bc_loss = loss_MSE(f_pred_bc, f_target_bc) #mean squared error loss due to BCs (to be used later in total loss)
-
 #loss due to boundary conditions
 
 w1 = 1
@@ -51,12 +47,9 @@ w2 = 0.5
 #weights
 
 def compute_residual_loss(f_pred, inputs):
-
-
   r_residual = torch.rand(num_points, 1) * 9 + 1 #let r be b/w 1 and 10, same as before
   mu_residual = torch.rand(num_points, 1) * 2 - 1 #mu = cos(theta), so b/w -1 and 1, same as before
   X_residual = torch.cat([r_residual, mu_residual], dim=1).requires_grad_(True) #combines both into an array of the form [r, mu], tells PyTorch to track gradients wrt inputs
-
   f_pred = model(X_residual) #same, gets f values for residuals (should be 0)
 
 #lifted autograd bit from gpt cos i had no idea
